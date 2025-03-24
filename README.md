@@ -36,6 +36,20 @@ Where:
   
   server - the clc-daemon to connect to
 
+Optional:
+```toml
+job_interval = 30
+report_interval = 2
+on_mined = "echo 'Just mined coin %cid%!'"
+```
+Where:
+
+  on_mined - command to execute every time a coin is mined, %cid% is the mined coin id
+  
+  report_interval - how often should the miner report performance
+  
+  job_interval - how often to scan for new jobs
+
 ### Set up performance reporting
 To set up reporting add the following to your clcminer.toml
 ```toml
