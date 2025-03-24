@@ -91,5 +91,6 @@ impl Solution {
                 println!("{} Request failed: {}\n", "[ERROR]".red(), e);
             }
         }
+        print!("\n\n");
     }
 }

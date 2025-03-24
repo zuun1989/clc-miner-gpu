@@ -10,6 +10,9 @@ use secp256k1::hashes::{sha256, Hash};
 use hex::encode;
 use num_bigint::BigUint;
 
+use std::io::Write;
+use crossterm::terminal::size;
+
 mod config;
 mod get_job;
 mod submit;
@@ -78,15 +81,32 @@ async fn main() {
             {
                 let mut hash_count_unlocked = hash_count_clone.write().await;
                 let mut calced_hash_count_unlocked = calced_hash_count_clone.write().await;
-                if *hash_count_unlocked >= (3 * 1_000) {
-                    println!("{} {}KH/s", "[INFO]".blue(), (*hash_count_unlocked as f32) / (3.0 * 1e3));
-                } else if *hash_count_unlocked >= (3 * 1_000_000) {
-                    println!("{} {}M/s", "[INFO]".blue(), (*hash_count_unlocked as f32) / (3.0 * 1e6));
+                let rate: f32;
+                let unit: &str;
+    
+                if *hash_count_unlocked >= (3 * 1_000_000_000_000_u64) {
+                    rate = (*hash_count_unlocked as f32) / (3.0 * 1e12);
+                    unit = "TH/s";
                 } else if *hash_count_unlocked >= (3 * 1_000_000_000) {
-                    println!("{} {}GH/s", "[INFO]".blue(), (*hash_count_unlocked as f32) / (3.0 * 1e9));
-                } else if *hash_count_unlocked >= (3 * 1_000_000_000_000_u64) {
-                    println!("{} {}TH/s", "[INFO]".blue(), (*hash_count_unlocked as f32) / (3.0 * 1e12));
+                    rate = (*hash_count_unlocked as f32) / (3.0 * 1e9);
+                    unit = "GH/s";
+                } else if *hash_count_unlocked >= (3 * 1_000_000) {
+                    rate = (*hash_count_unlocked as f32) / (3.0 * 1e6);
+                    unit = "M/s";
+                } else if *hash_count_unlocked >= (3 * 1_000) {
+                    rate = (*hash_count_unlocked as f32) / (3.0 * 1e3);
+                    unit = "KH/s";
+                } else {
+                    rate = *hash_count_unlocked as f32;
+                    unit = "H/s";
                 }
+    
+                // Replaces the previous printed line
+                let (width, _height) = size().unwrap();
+                let out = format!("\r{} {}{}", "[INFO]".blue(), rate, unit);
+                print!("\r\r{}{}", out, " ".repeat(width as usize - out.len()));
+                std::io::stdout().flush().unwrap(); // Ensure immediate output
+                
                 *calced_hash_count_unlocked = (*hash_count_unlocked as f64) / (3.0 * 1e3);
                 *hash_count_unlocked = 0;
                 {
@@ -96,6 +116,7 @@ async fn main() {
             }
         }
     });
+    
 
     // Update job at interval
     let current_job_clone = Arc::clone(&current_job);
@@ -118,13 +139,13 @@ async fn main() {
                     let duration_since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
                     let elapsed_secs = duration_since_epoch.as_secs();
         
-                    println!("\n{}", "[INFO] New job".blue());
+                    println!("\n\n{}", "[INFO] New job".blue());
                     println!("{} {} {}", "[INFO]".blue(), "seed:", job_mut.seed);
                     println!("{} {} {}", "[INFO]".blue(), "diff:", pad_start_256_bit_int(&job_mut.diff));
                     println!("{} {} {}", "[INFO]".blue(), "reward:", job_mut.reward.to_string().green());
         
                     let time_since_last_found = elapsed_secs - job_mut.last_found / 1000;
-                    println!("{} {} {}s ago\n", "[INFO]".blue(), "Last mined", time_since_last_found);
+                    println!("{} {} {}s ago\n\n", "[INFO]".blue(), "Last mined", time_since_last_found);
                 }
             }
             time::sleep(Duration::from_secs(config_clone.read().await.job_interval as u64)).await;
@@ -145,7 +166,7 @@ async fn main() {
                 &pad_start_256_bit_int(&*best_clone.read().await)
             ).await;
             if res != "" {
-                println!("{} Error reporting: {}", "[ERROR]".red(), res);
+                println!("\n{} Error reporting: {}", "[ERROR]".red(), res);
             }
             time::sleep(Duration::from_secs(config_clone.read().await.report_interval as u64)).await;
         }
@@ -181,7 +202,7 @@ async fn main() {
                 }
                 if current_job_clone.read().await.diff >= key_diff {
                     let hash_str: String = key_diff.to_str_radix(16);
-                    println!("\n{} Found {}CLCs!", "[INFO]".blue(), current_job_clone.read().await.reward.to_string().green());
+                    println!("\n\n{} Found {}CLCs!", "[INFO]".blue(), current_job_clone.read().await.reward.to_string().green());
                     println!("{} Hash: {}", "[INFO]".blue(), hash_str);
                     let solution = Solution {
                         public_key: public_key,
