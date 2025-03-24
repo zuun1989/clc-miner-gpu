@@ -41,6 +41,8 @@ async fn main() {
                 rewards_dir: String::from("./rewards"),
                 thread: -1,
                 on_mined: String::from(""),
+                report_interval: 10,
+                job_interval: 1,
                 reporting: Reporting {
                     report_server: String::from(""),
                     report_user: String::from(""),
@@ -66,6 +68,7 @@ async fn main() {
     let total_mined = Arc::new(tokio::sync::RwLock::new(0_f64));
     let best: Arc<tokio::sync::RwLock<BigUint>> = Arc::new(tokio::sync::RwLock::new(BigUint::parse_bytes("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF".as_bytes(), 16).unwrap()));
 
+    // Log data
     let hash_count_clone = Arc::clone(&hash_count);
     let calced_hash_count_clone = Arc::clone(&calced_hash_count);
     let best_clone = Arc::clone(&best);
@@ -124,7 +127,7 @@ async fn main() {
                     println!("{} {} {}s ago\n", "[INFO]".blue(), "Last mined", time_since_last_found);
                 }
             }
-            time::sleep(Duration::from_secs(1)).await;
+            time::sleep(Duration::from_secs(config_clone.read().await.job_interval as u64)).await;
         }
     });
 
@@ -144,7 +147,7 @@ async fn main() {
             if res != "" {
                 println!("{} Error reporting: {}", "[ERROR]".red(), res);
             }
-            time::sleep(Duration::from_secs(5)).await;
+            time::sleep(Duration::from_secs(config_clone.read().await.report_interval as u64)).await;
         }
     });
 

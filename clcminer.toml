@@ -1,3 +1,9 @@
 server = "https://clc.ix.tc"
 rewards_dir = "rewards"
 thread = -1
+job_interval = 10
+report_interval = 30
+
+[reporting]
+report_user = "xxxx"
+report_server = "https://clc.ix.tc:3000"

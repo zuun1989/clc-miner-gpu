@@ -3,12 +3,14 @@ use serde::Deserialize;
 use colored::*;
 
 #[derive(Debug, Deserialize)]
-pub struct CLCMinerConfigLoad {
+struct CLCMinerConfigLoad {
     pub server: String,
     pub rewards_dir: String,
     pub thread: i64,
     #[serde(default)]
     pub on_mined: Option<String>,
+    pub job_interval: Option<i64>,
+    pub report_interval: Option<i64>,
     pub reporting: Option<Reporting>,
 }
 
@@ -22,6 +24,8 @@ pub struct CLCMinerConfig {
     pub server: String,
     pub rewards_dir: String,
     pub thread: i64,
+    pub job_interval: i64,
+    pub report_interval: i64,
     pub on_mined: String,
     pub reporting: Reporting,
 }
@@ -48,12 +52,23 @@ pub fn load() -> Result<CLCMinerConfig, String> {
                         Some(on_mined) => on_mined.to_string(),  // Convert &String to String
                         None => String::from(""),
                     };
+                    let job_interval: i64 = match &config.job_interval {
+                        Some(job_interval) => *job_interval,
+                        None => 1,
+                    };
+                    let report_interval: i64 = match &config.report_interval {
+                        Some(report_interval) => *report_interval,
+                        None => 1,
+                    };
+
                     return Ok(CLCMinerConfig {
                         server: config.server,
                         rewards_dir: config.rewards_dir,
                         thread: config.thread,
-                        on_mined,
-                        reporting,
+                        job_interval: job_interval,
+                        report_interval: report_interval,
+                        on_mined: on_mined,
+                        reporting: reporting,
                     });
                 },
                 Err(e) => {
