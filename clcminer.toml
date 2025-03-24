@@ -1,0 +1,3 @@
+server = "http://clc.ix.tc"
+rewards_dir = "rewards"
+thread = -1
