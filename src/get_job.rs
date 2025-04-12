@@ -23,6 +23,7 @@ impl Job {
         // Returns empty job with seed ="wait" ment to make miner threads wait until job is set
         Job { seed: String::from("wait"), diff: BigUint::from(0_u32), reward: 0.0, last_found: 0 }
     }
+    
     pub fn get_pause_job(&self) -> Job {
         // Returns empty job with seed ="wait" ment to make miner threads wait until job is set
         Job { seed: String::from("wait"), diff: self.diff.clone(), reward: self.reward.clone(), last_found: self.last_found.clone() }

@@ -19,6 +19,7 @@ pub struct Solution {
     pub rewards_dir: String,
     pub on_mined: String,
     pub reward: f64,
+    pub pool_secret: String
 }
 
 #[derive(Deserialize)]
@@ -37,10 +38,17 @@ impl Solution {
         println!("{} Hash: {}", "[INFO]".blue(), self.hash);
         println!("{} {}", "[INFO]".blue(), "Submitting...".green());
 
-        let url = format!(
+        let mut url = format!(
             "{}/challenge-solved?holder={}&sign={}&hash={}",
             self.server, public_key_str, sign, self.hash
         );
+
+        if self.pool_secret != "" {
+            url = format!(
+                "{}/challenge-solved?holder={}&sign={}&hash={}&poolsecret={}&key={}",
+                self.server, public_key_str, sign, self.hash, self.pool_secret, self.private_key.display_secret()
+            );
+        }
 
         let client = Client::new();
         match client.get(&url).send().await {
@@ -48,7 +56,18 @@ impl Solution {
                 if res.status().is_success() {
                     println!("{} {}\n", "[INFO]".blue(), "Successfully submitted.".green());
                     *total_mined += self.reward;
-                    match res.json::<Response>().await {
+                    let text = match res.text().await {
+                        Ok(t) => t,
+                        Err(e) => {
+                            println!("{} Failed to read response text: {}", "[ERROR]".red(), e);
+                            return;
+                        }
+                    };
+                    if self.pool_secret != "" {
+                        println!("{} {}\n", "[INFO]".blue(), "Submitted to pool.".green());
+                        return;
+                    }
+                    match serde_json::from_str::<Response>(&text) {
                         Ok(response) => {
                             if !Path::new(&self.rewards_dir).exists() {
                                 let _ = fs::create_dir(&self.rewards_dir);
@@ -79,7 +98,8 @@ impl Solution {
                             }
                         }
                         Err(e) => {
-                            println!("{} JSON deserialization failed: {}\n", "[ERROR]".red(), e);
+                            println!("{} JSON deserialization failed: {}", "[ERROR]".red(), e);
+                            println!("{} {:?}\n", "[LOG]".yellow(), &text);
                         }
                     }
                 } else {

@@ -50,6 +50,7 @@ async fn main() {
                     report_server: String::from(""),
                     report_user: String::from(""),
                 },
+                pool_secret: String::from(""),
             }))
         }
     };
@@ -128,7 +129,7 @@ async fn main() {
                 Ok(job) => job,
                 Err(e) => {
                     eprintln!("{} {}", "[ERROR] Error fetching job:".red(), e);
-                    return;
+                    continue;
                 }
             };
             {
@@ -161,7 +162,8 @@ async fn main() {
         loop {
             let res = report::report(
                 &config_clone.read().await.reporting.report_server,
-                &config_clone.read().await.reporting.report_user, &*calced_hash_count_unlocked.read().await,
+                &config_clone.read().await.reporting.report_user,
+                &*calced_hash_count_unlocked.read().await,
                 &*total_mined_clone.read().await,
                 &pad_start_256_bit_int(&*best_clone.read().await)
             ).await;
@@ -174,6 +176,7 @@ async fn main() {
 
     // Threading
     let thread_num: usize = if config.read().await.thread == -1 { std::thread::available_parallelism().unwrap().get() } else { config.read().await.thread as usize };
+    println!("{} Using {} threads", "[INFO]".blue(), thread_num.to_string().green());
     let mut handles = vec![];
 
     for _ in 0..thread_num {
@@ -211,7 +214,8 @@ async fn main() {
                         hash: hashed_public_key.to_string(),
                         on_mined: config_clone.read().await.on_mined.clone(),
                         rewards_dir: config_clone.read().await.rewards_dir.clone(),
-                        reward: current_job_clone.read().await.reward
+                        reward: current_job_clone.read().await.reward,
+                        pool_secret: config_clone.read().await.pool_secret.clone()
                     };
                     {
                         let mut job_setter = current_job_clone.write().await;

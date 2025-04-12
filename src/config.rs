@@ -11,6 +11,7 @@ struct CLCMinerConfigLoad {
     pub on_mined: Option<String>,
     pub job_interval: Option<i64>,
     pub report_interval: Option<i64>,
+    pub pool_secret: Option<String>,
     pub reporting: Option<Reporting>,
 }
 
@@ -28,6 +29,7 @@ pub struct CLCMinerConfig {
     pub report_interval: i64,
     pub on_mined: String,
     pub reporting: Reporting,
+    pub pool_secret: String
 }
 
 pub fn load() -> Result<CLCMinerConfig, String> {
@@ -60,6 +62,10 @@ pub fn load() -> Result<CLCMinerConfig, String> {
                         Some(report_interval) => *report_interval,
                         None => 1,
                     };
+                    let pool_secret: String = match &config.pool_secret {
+                        Some(pool_secret) => pool_secret.to_string(),
+                        None => String::from(""),
+                    };
 
                     return Ok(CLCMinerConfig {
                         server: config.server,
@@ -69,6 +75,7 @@ pub fn load() -> Result<CLCMinerConfig, String> {
                         report_interval: report_interval,
                         on_mined: on_mined,
                         reporting: reporting,
+                        pool_secret: pool_secret
                     });
                 },
                 Err(e) => {
