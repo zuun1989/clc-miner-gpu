@@ -10,6 +10,7 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 use serde::Deserialize;
+use urlencoding::encode as uri_encode;
 
 pub struct Solution {
     pub public_key: PublicKey,
@@ -46,11 +47,14 @@ impl Solution {
         if self.pool_secret != "" {
             url = format!(
                 "{}/challenge-solved?holder={}&sign={}&hash={}&poolsecret={}&key={}",
-                self.server, public_key_str, sign, self.hash, self.pool_secret, self.private_key.display_secret()
+                self.server, public_key_str, sign, self.hash, self.pool_secret, uri_encode(&self.private_key.display_secret().to_string())
             );
         }
 
-        let client = Client::new();
+        let client = Client::builder()
+            .timeout(std::time::Duration::from_secs(5))
+            .build()
+            .unwrap();
         match client.get(&url).send().await {
             Ok(res) => {
                 if res.status().is_success() {

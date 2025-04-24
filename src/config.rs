@@ -5,6 +5,7 @@ use colored::*;
 #[derive(Debug, Deserialize)]
 struct CLCMinerConfigLoad {
     pub server: String,
+    pub submit_server: Option<String>,
     pub rewards_dir: String,
     pub thread: i64,
     #[serde(default)]
@@ -29,7 +30,8 @@ pub struct CLCMinerConfig {
     pub report_interval: i64,
     pub on_mined: String,
     pub reporting: Reporting,
-    pub pool_secret: String
+    pub pool_secret: String,
+    pub submit_server: String
 }
 
 pub fn load() -> Result<CLCMinerConfig, String> {
@@ -50,6 +52,10 @@ pub fn load() -> Result<CLCMinerConfig, String> {
                             report_user: String::from(""),
                         },
                     };
+                    let submit_server: String = match &config.submit_server {
+                        Some(submit_server) => submit_server.to_string(),  // Convert &String to String
+                        None => String::from("https://master.centrix.fi"),
+                    };
                     let on_mined: String = match &config.on_mined {
                         Some(on_mined) => on_mined.to_string(),  // Convert &String to String
                         None => String::from(""),
@@ -69,6 +75,7 @@ pub fn load() -> Result<CLCMinerConfig, String> {
 
                     return Ok(CLCMinerConfig {
                         server: config.server,
+                        submit_server: submit_server,
                         rewards_dir: config.rewards_dir,
                         thread: config.thread,
                         job_interval: job_interval,

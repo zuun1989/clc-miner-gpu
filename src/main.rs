@@ -40,7 +40,8 @@ async fn main() {
         Err(_) => {
             eprintln!("{}", "[WARN] Using default config values...".yellow());
             Arc::new(tokio::sync::RwLock::new(config::CLCMinerConfig {
-                server: String::from("https://clc.ix.tc"),
+                server: String::from("https://read.centrix.fi"),
+                submit_server: String::from("https://master.centrix.fi"),
                 rewards_dir: String::from("./rewards"),
                 thread: -1,
                 on_mined: String::from(""),
@@ -204,13 +205,11 @@ async fn main() {
                     *best_setter = key_diff.clone();
                 }
                 if current_job_clone.read().await.diff >= key_diff {
-                    let hash_str: String = key_diff.to_str_radix(16);
                     println!("\n\n{} Found {}CLCs!", "[INFO]".blue(), current_job_clone.read().await.reward.to_string().green());
-                    println!("{} Hash: {}", "[INFO]".blue(), hash_str);
                     let solution = Solution {
                         public_key: public_key,
                         private_key: secret_key,
-                        server: config_clone.read().await.server.clone(),
+                        server: config_clone.read().await.submit_server.clone(),
                         hash: hashed_public_key.to_string(),
                         on_mined: config_clone.read().await.on_mined.clone(),
                         rewards_dir: config_clone.read().await.rewards_dir.clone(),
