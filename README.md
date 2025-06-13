@@ -14,11 +14,11 @@ bash
    ```
 2. Build the miner
    ```bash
-   cargo build --release
+   cargo build
    ```
 3. Run the miner
    ```bash
-   ./target/release/clc-miner2
+   ./target/debug/clc-miner2
 
 ## Configuration
 The configuration is stored in the clcminer.toml in the project root directory
@@ -27,10 +27,16 @@ The configuration is stored in the clcminer.toml in the project root directory
 server = "https://clc.ix.tc"
 rewards_dir = "rewards"
 thread = -1
+gpu = 1
+gpu_platform = "auto"
+gpu_workgroup_size = 256
+gpu_batch_size = 1048576
 ```
 Where:
 
   thread - amount of threads to run the miner on (-1 is max)
+
+  gpu - 0 is disable ; 1 enable
   
   rewars_dir - directory to store the rewards in
   
@@ -38,9 +44,9 @@ Where:
 
 Optional:
 ```toml
-job_interval = 30
+job_interval = 10
 report_interval = 2
-on_mined = "echo 'Just mined coin %cid%!'"
+on_mined = "clc-wallet add-coin rewards/%cid%.coin"
 ```
 Where:
 
