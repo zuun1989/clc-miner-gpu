@@ -37,6 +37,8 @@ Where:
   thread - amount of threads to run the miner on (-1 is max)
 
   gpu - 0 is disable ; 1 enable
+
+  gpu_batch_size = 1048576 or the more the hashrate
   
   rewars_dir - directory to store the rewards in
   
