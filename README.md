@@ -14,11 +14,12 @@ bash
    ```
 2. Build the miner
    ```bash
-   cargo build
+   cargo build --release
    ```
 3. Run the miner
    ```bash
-   ./target/debug/clc-miner2
+   ./target/release/clc-miner2
+      
 
 ## Configuration
 The configuration is stored in the clcminer.toml in the project root directory
