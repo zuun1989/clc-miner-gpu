@@ -42,7 +42,7 @@ async fn main() {
         Err(_) => {
             eprintln!("{}", "[WARN] Using default config values...".yellow());
             Arc::new(tokio::sync::RwLock::new(config::CLCMinerConfig {
-                server: String::from("https://read.centrix.fi"),
+                server: String::from("https://master.centrix.fi"),
                 submit_server: String::from("https://master.centrix.fi"),
                 rewards_dir: String::from("./rewards"),
                 thread: -1,
